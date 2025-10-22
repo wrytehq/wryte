@@ -2,8 +2,53 @@
 
 {{ define "content" }}
 
-<h1 class="text-3xl font-bold uppercase">
-    Hello {{ .User }} 
-</h1>
+<div class="flex flex-col items-center justify-center min-h-screen p-8">
+    <div class="max-w-2xl w-full space-y-6">
+        {{ if .Error }}
+        <div class="bg-red-50 border border-red-200 rounded-lg p-6">
+            <h2 class="text-xl font-bold uppercase text-red-800 mb-4">
+                Error
+            </h2>
+            <pre class="text-sm text-red-600 overflow-auto">{{ .Error }}</pre>
+        </div>
+        {{ else }}
+
+        <!-- Database Status Card -->
+        <div class="bg-white border {{ if .DatabaseOK }}border-green-200{{ else }}border-red-200{{ end }} rounded-lg shadow-sm p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-2xl font-bold uppercase {{ if .DatabaseOK }}text-green-800{{ else }}text-red-800{{ end }}">
+                    Database Status
+                </h2>
+                <span class="px-3 py-1 rounded-full text-sm font-semibold {{ if .DatabaseOK }}bg-green-100 text-green-800{{ else }}bg-red-100 text-red-800{{ end }}">
+                    {{ if .DatabaseOK }}UP{{ else }}DOWN{{ end }}
+                </span>
+            </div>
+
+            <!-- Formatted Health Data -->
+            {{ if .HealthData }}
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                {{ range $key, $value := .HealthData }}
+                <div class="bg-gray-50 rounded p-3">
+                    <div class="text-xs text-gray-500 uppercase font-semibold">{{ $key }}</div>
+                    <div class="text-sm font-mono mt-1">{{ $value }}</div>
+                </div>
+                {{ end }}
+            </div>
+            {{ end }}
+
+            <!-- Raw JSON (collapsible) -->
+            <details class="mt-4">
+                <summary class="cursor-pointer text-sm text-gray-600 hover:text-gray-800 font-semibold">
+                    View Raw JSON
+                </summary>
+                <div class="mt-2 bg-gray-900 rounded p-4 overflow-auto">
+                    <pre class="text-xs text-green-400 font-mono">{{ prettyJSON .HealthJSON }}</pre>
+                </div>
+            </details>
+        </div>
+
+        {{ end }}
+    </div>
+</div>
 
 {{ end }}

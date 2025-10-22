@@ -5,12 +5,15 @@ import (
 	"net/http"
 
 	"github.com/wrytehq/wryte/internal/config"
+	"github.com/wrytehq/wryte/internal/database"
 	"github.com/wrytehq/wryte/internal/handler"
 	"github.com/wrytehq/wryte/internal/templates"
 )
 
 type Server struct {
 	config *config.Config
+
+	db database.Service
 }
 
 func New() *http.Server {
@@ -26,10 +29,13 @@ func New() *http.Server {
 	}
 	log.Printf("Templates loaded: %v", tmpl.List())
 
-	h := handler.New(tmpl)
+	db := database.New(cfg)
+
+	h := handler.New(tmpl, db)
 
 	newServer := &Server{
 		config: cfg,
+		db:     db,
 	}
 
 	s := &http.Server{

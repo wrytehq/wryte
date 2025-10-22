@@ -1,24 +1,46 @@
 package handler
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 )
 
 func (h *Handler) Home() http.HandlerFunc {
-	// Obtener el template una sola vez al crear el handler
 	tmpl := h.templates.MustRender("home")
 
 	type data struct {
-		Title string
-		User  string
+		Error       error
+		HealthJSON  []byte
+		HealthData  map[string]string
+		DatabaseOK  bool
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Ejecutar el template y manejar el error correctamente
-		err := tmpl.Execute(w, data{
-			Title: "Wryte",
-			User:  "Jhon Doe",
+		healthData := h.db.Health()
+		health, err := json.Marshal(healthData)
+
+		if err != nil {
+			log.Printf("Error marshaling health data: %v", err)
+			tmpl.ExecuteTemplate(w, "layout.html", data{
+				Error:      err,
+				HealthJSON: nil,
+				HealthData: nil,
+				DatabaseOK: false,
+			})
+			return
+		}
+
+		log.Println(string(health))
+
+		// Check if database is healthy
+		dbOK := healthData["status"] == "up"
+
+		err = tmpl.ExecuteTemplate(w, "layout.html", data{
+			Error:      nil,
+			HealthJSON: health,
+			HealthData: healthData,
+			DatabaseOK: dbOK,
 		})
 		if err != nil {
 			log.Printf("Error executing template: %v", err)

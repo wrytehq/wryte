@@ -19,7 +19,7 @@ func (s *Server) Routes(h *handler.Handler) http.Handler {
 	r.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.FS(assetsFS))))
 
 	r.HandleFunc("/", h.Home())
-	r.HandleFunc("/about", h.About())
+	r.HandleFunc("GET /sign-in", h.SignInPage())
 
 	return middleware.Chain(
 		r,

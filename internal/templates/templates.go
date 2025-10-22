@@ -1,10 +1,11 @@
 package templates
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"io/fs"
-	"path/filepath"
 	"strings"
 
 	"github.com/wrytehq/wryte/web"
@@ -12,6 +13,39 @@ import (
 
 type Manager struct {
 	templates map[string]*template.Template
+}
+
+func templateFuncs() template.FuncMap {
+	return template.FuncMap{
+		// prettyJSON formats JSON bytes with indentation
+		"prettyJSON": func(data []byte) (string, error) {
+			var buf bytes.Buffer
+			err := json.Indent(&buf, data, "", "  ")
+			if err != nil {
+				return string(data), err
+			}
+			return buf.String(), nil
+		},
+		// parseJSON parses JSON bytes into a Go interface
+		"parseJSON": func(data []byte) (interface{}, error) {
+			var result interface{}
+			err := json.Unmarshal(data, &result)
+			return result, err
+		},
+		// jsonString converts []byte to string
+		"jsonString": func(data []byte) string {
+			return string(data)
+		},
+		// jsonField extracts a field from JSON bytes
+		"jsonField": func(data []byte, field string) (interface{}, error) {
+			var result map[string]interface{}
+			err := json.Unmarshal(data, &result)
+			if err != nil {
+				return nil, err
+			}
+			return result[field], nil
+		},
+	}
 }
 
 func New() (*Manager, error) {
@@ -27,19 +61,37 @@ func New() (*Manager, error) {
 }
 
 func (m *Manager) loadTemplates() error {
-	pages, err := fs.Glob(web.Files, "templates/*.html")
+	pages, err := fs.Glob(web.Files, "templates/**/*.html")
 	if err != nil {
 		return fmt.Errorf("error finding template files: %w", err)
 	}
 
+	// Also find direct templates in the templates folder
+	directPages, err := fs.Glob(web.Files, "templates/*.html")
+	if err != nil {
+		return fmt.Errorf("error finding direct template files: %w", err)
+	}
+
+	// Combine both lists (remove duplicates)
+	allPages := make(map[string]bool)
 	for _, page := range pages {
+		allPages[page] = true
+	}
+	for _, page := range directPages {
+		allPages[page] = true
+	}
+
+	for page := range allPages {
 		if page == "templates/layout.html" {
 			continue // Skip layout.html, it's the base template
 		}
 
-		name := strings.TrimSuffix(filepath.Base(page), ".html")
+		name := strings.TrimPrefix(page, "templates/")
+		name = strings.TrimSuffix(name, ".html")
 
-		tmpl, err := template.ParseFS(web.Files, "templates/layout.html", page)
+		tmpl := template.New("layout.html").Funcs(templateFuncs())
+
+		tmpl, err := tmpl.ParseFS(web.Files, "templates/layout.html", page)
 		if err != nil {
 			return fmt.Errorf("error parsing template %s: %w", page, err)
 		}

@@ -9,7 +9,18 @@ import (
 )
 
 type Config struct {
-	Server ServerConfig
+	Server   ServerConfig
+	Database DatabaseConfig
+}
+
+type DatabaseConfig struct {
+	Host     string
+	Port     int
+	User     string
+	Password string
+	Database string
+	SSLMode  string
+	Schema   string
 }
 
 type ServerConfig struct {
@@ -24,6 +35,15 @@ func Load() (*Config, error) {
 			Port: getEnvAsInt("PORT", 8080),
 			Host: getEnv("HOST", "localhost"),
 			Env:  getEnv("ENV", "development"),
+		},
+		Database: DatabaseConfig{
+			Host:     getEnv("DB_HOST", "localhost"),
+			Port:     getEnvAsInt("DB_PORT", 5432),
+			User:     getEnv("DB_USER", "postgres"),
+			Password: getEnv("DB_PASSWORD", ""),
+			Database: getEnv("DB_NAME", "wryte"),
+			SSLMode:  getEnv("DB_SSL_MODE", "disable"),
+			Schema:   getEnv("DB_SCHEMA", "public"),
 		},
 	}
 
