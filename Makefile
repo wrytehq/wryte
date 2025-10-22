@@ -1,9 +1,14 @@
 # Build the application
 all: build test
 
-build:
+build: build-css
 	@echo "Building..."
 	@go build -o main.exe cmd/wryte/main.go
+
+# Build Tailwind CSS
+build-css:
+	@echo "Building Tailwind CSS..."
+	@npm run build
 
 # Run the application
 run:
@@ -17,9 +22,13 @@ test:
 # Clean the binary
 clean:
 	@echo "Cleaning..."
-	@rm -f main
+	@rm -f main.exe
 
-# Live Reload
+# Watch Tailwind CSS only
+watch-css:
+	@echo "Watching Tailwind CSS..."
+	@npm run watch
+
 watch:
 	@powershell -ExecutionPolicy Bypass -Command "if (Get-Command air -ErrorAction SilentlyContinue) { \
 		air; \
@@ -31,4 +40,4 @@ watch:
 		Write-Output 'Watching...'; \
 	}"
 
-.PHONY: all build run test clean watch
+.PHONY: all build build-css run test clean watch watch-css

@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "watch": "tailwindcss -i ./web/styles/tailwind.css -o ./web/assets/css/output.css --watch"
+    "watch": "tailwindcss -i ./web/styles/tailwind.css -o ./web/assets/css/output.css --watch",
+    "build": "tailwindcss -i ./web/styles/tailwind.css -o ./web/assets/css/output.css --minify"
   },
   "repository": {
     "type": "git",
