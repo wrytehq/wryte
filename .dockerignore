@@ -1,0 +1,49 @@
+# Git files
+.git
+.gitignore
+
+# IDE files
+.vscode
+.idea
+*.swp
+*.swo
+
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+main
+main.exe
+
+# Test files
+*.test
+
+# Go workspace
+go.work
+tmp/
+
+# Node modules (will be installed in Docker)
+node_modules
+
+# Build output (will be generated in Docker)
+web/assets/css/output.css
+
+# Documentation
+README.md
+*.md
+
+# Environment files
+.env
+.env.*
+
+# CI/CD
+.github
+.gitlab-ci.yml
+
+# Air for hot reload (dev only)
+.air.toml
+
+# OS files
+.DS_Store
+Thumbs.db

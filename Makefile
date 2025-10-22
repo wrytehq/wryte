@@ -40,4 +40,29 @@ watch:
 		Write-Output 'Watching...'; \
 	}"
 
-.PHONY: all build build-css run test clean watch watch-css
+# Docker commands
+docker-build:
+	@echo "Building Docker image..."
+	@docker build -t wryte:latest .
+
+docker-run:
+	@echo "Running Docker container..."
+	@docker run -p 8080:8080 wryte:latest
+
+docker-up:
+	@echo "Starting with docker-compose..."
+	@docker-compose up -d
+
+docker-down:
+	@echo "Stopping docker-compose..."
+	@docker-compose down
+
+docker-logs:
+	@echo "Showing logs..."
+	@docker-compose logs -f
+
+docker-rebuild:
+	@echo "Rebuilding and restarting..."
+	@docker-compose up -d --build
+
+.PHONY: all build build-css run test clean watch watch-css docker-build docker-run docker-up docker-down docker-logs docker-rebuild
