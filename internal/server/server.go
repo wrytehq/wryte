@@ -27,7 +27,9 @@ func New() *http.Server {
 	if err != nil {
 		log.Fatalf("Failed to initialize templates: %v", err)
 	}
-	log.Printf("Templates loaded: %v", tmpl.List())
+	if cfg.Server.Env == "development" {
+		log.Printf("Templates loaded: %v", tmpl.List())
+	}
 
 	db := database.New(cfg)
 

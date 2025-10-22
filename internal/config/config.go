@@ -9,8 +9,13 @@ import (
 )
 
 type Config struct {
+	Project  ProjectConfig
 	Server   ServerConfig
 	Database DatabaseConfig
+}
+
+type ProjectConfig struct {
+	IsCloud bool
 }
 
 type DatabaseConfig struct {
@@ -31,6 +36,9 @@ type ServerConfig struct {
 
 func Load() (*Config, error) {
 	cfg := &Config{
+		Project: ProjectConfig{
+			IsCloud: getEnv("IS_CLOUD", "false") == "true",
+		},
 		Server: ServerConfig{
 			Port: getEnvAsInt("PORT", 8080),
 			Host: getEnv("HOST", "localhost"),
@@ -82,6 +90,14 @@ func (c *Config) IsProduction() bool {
 
 func (c *Config) Addr() string {
 	return fmt.Sprintf("%s:%d", c.Server.Host, c.Server.Port)
+}
+
+func (c *Config) IsCloud() bool {
+	return c.Project.IsCloud
+}
+
+func (c *Config) IsSelfHosted() bool {
+	return !c.Project.IsCloud
 }
 
 func getEnv(key, defaultValue string) string {

@@ -10,10 +10,10 @@ func (h *Handler) Home() http.HandlerFunc {
 	tmpl := h.templates.MustRender("home")
 
 	type data struct {
-		Error       error
-		HealthJSON  []byte
-		HealthData  map[string]string
-		DatabaseOK  bool
+		Error      error
+		HealthJSON []byte
+		HealthData map[string]string
+		DatabaseOK bool
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -30,8 +30,6 @@ func (h *Handler) Home() http.HandlerFunc {
 			})
 			return
 		}
-
-		log.Println(string(health))
 
 		// Check if database is healthy
 		dbOK := healthData["status"] == "up"

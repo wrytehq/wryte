@@ -21,6 +21,11 @@ func (s *Server) Routes(h *handler.Handler) http.Handler {
 	r.HandleFunc("/", h.Home())
 	r.HandleFunc("GET /sign-in", h.SignInPage())
 
+	if s.config.IsSelfHosted() && !s.config.IsCloud() {
+		r.HandleFunc("GET /setup", h.SetupPage())
+		r.HandleFunc("POST /setup", h.SetupForm())
+	}
+
 	return middleware.Chain(
 		r,
 		middleware.Recovery,
