@@ -70,6 +70,7 @@
             {{ if  .Errors.Has "email" }}
                 <div class="label text-red-500">{{  .Errors.Get "email" }}</div>
             {{ end }}
+            <div id="email-error" class="label text-red-500 hidden"></div>
         </fieldset>
 
         <fieldset class="fieldset">
@@ -85,6 +86,7 @@
             {{ if  .Errors.Has "password" }}
                 <div class="label text-red-500">{{  .Errors.Get "password" }}</div>
             {{ end }}
+            <div id="password-error" class="label text-red-500 hidden"></div>
         </fieldset>
 
         <fieldset class="fieldset">
@@ -99,6 +101,7 @@
             {{ if  .Errors.Has "confirmpassword" }}
                 <div class="label text-red-500">{{  .Errors.Get "confirmpassword" }}</div>
             {{ end }}
+            <div id="confirm-password-error" class="label text-red-500 hidden"></div>
         </fieldset>
 
     <button
@@ -131,12 +134,82 @@
         const passwordInput = document.getElementById('setup-form-password');
         const confirmPasswordInput = document.getElementById('setup-form-confirmpassword');
 
+        const emailError = document.getElementById('email-error');
+        const passwordError = document.getElementById('password-error');
+        const confirmPasswordError = document.getElementById('confirm-password-error');
+
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        function showError(element, message) {
+            element.textContent = message;
+            element.classList.remove('hidden');
+        }
+
+        function hideError(element) {
+            element.textContent = '';
+            element.classList.add('hidden');
+        }
+
+        function validateEmail() {
+            const email = emailInput.value.trim();
+            if (email === '') {
+                hideError(emailError);
+                return false;
+            }
+            if (!isValidEmail(email)) {
+                showError(emailError, 'Please enter a valid email address');
+                emailInput.classList.add('input-error');
+                return false;
+            }
+            hideError(emailError);
+            emailInput.classList.remove('input-error');
+            return true;
+        }
+
+        function validatePassword() {
+            const password = passwordInput.value;
+            if (password === '') {
+                hideError(passwordError);
+                return false;
+            }
+            if (password.length < 6) {
+                showError(passwordError, 'Password must be at least 6 characters');
+                passwordInput.classList.add('input-error');
+                return false;
+            }
+            hideError(passwordError);
+            passwordInput.classList.remove('input-error');
+            return true;
+        }
+
+        function validateConfirmPassword() {
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+
+            if (confirmPassword === '') {
+                hideError(confirmPasswordError);
+                return false;
+            }
+            if (password !== confirmPassword) {
+                showError(confirmPasswordError, 'Passwords do not match');
+                confirmPasswordInput.classList.add('input-error');
+                return false;
+            }
+            hideError(confirmPasswordError);
+            confirmPasswordInput.classList.remove('input-error');
+            return true;
+        }
+
         function validateForm() {
-            const isValid =
-                nameInput.value.trim() !== '' &&
-                emailInput.value.trim() !== '' &&
-                passwordInput.value.length >= 6 &&
-                confirmPasswordInput.value !== '';
+            const nameValid = nameInput.value.trim() !== '';
+            const emailValid = validateEmail();
+            const passwordValid = validatePassword();
+            const passwordsMatch = validateConfirmPassword();
+
+            const isValid = nameValid && emailValid && passwordValid && passwordsMatch;
 
             submitBtn.disabled = !isValid;
             if (isValid) {
@@ -148,7 +221,12 @@
 
         nameInput.addEventListener('input', validateForm);
         emailInput.addEventListener('input', validateForm);
-        passwordInput.addEventListener('input', validateForm);
+        passwordInput.addEventListener('input', function() {
+            validateForm();
+            if (confirmPasswordInput.value !== '') {
+                validateConfirmPassword();
+            }
+        });
         confirmPasswordInput.addEventListener('input', validateForm);
 
         form.addEventListener('htmx:beforeRequest', function() {
