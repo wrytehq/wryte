@@ -24,3 +24,9 @@ tmp/
 
 # Project build
 main
+
+# Npm dependencies
+node_modules
+
+# Tailwind CSS
+web/assets/css/output.css
