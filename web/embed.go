@@ -3,6 +3,6 @@ package web
 import "embed"
 
 var (
-	//go:embed *
+	//go:embed templates/* assets/*
 	Files embed.FS
 )
