@@ -10,10 +10,10 @@
 
 {{ define "setup_form" }}
 
-<form class="w-full max-w-sm flex flex-col gap-4"
+<form id="setup-form" class="w-full max-w-sm flex flex-col gap-4"
     hx-post="/setup"
     hx-swap="outerHTML"
-    
+    hx-indicator="#submit-indicator"
 >
     <div>
         <h1 class="flex gap-1 items-center text-lg font-semibold">
@@ -42,8 +42,15 @@
 
         <fieldset class="fieldset">
             <legend class="fieldset-legend">Name</legend>
-            <input class="input w-full {{ if  .Errors.Has "name" }} input-error {{ end }}" id="setup_form--name"
-                name="name" required autofocus autocomplete="name" value="{{ if .Form }}{{ .Form.Name }}{{ end }}" placeholder="John Doe" />
+            <input
+                class="input w-full {{ if  .Errors.Has "name" }} input-error {{ end }}"
+                id="setup-form-name"
+                name="name"
+                required
+                autofocus
+                autocomplete="name"
+                value="{{ if .Form }}{{ .Form.Name }}{{ end }}"
+                placeholder="John Doe" />
             {{ if  .Errors.Has "name" }}
                 <div class="label text-red-500">{{  .Errors.Get "name" }}</div>
             {{ end }}
@@ -51,8 +58,14 @@
 
         <fieldset class="fieldset">
             <legend class="fieldset-legend">E-mail</legend>
-            <input class="input w-full {{ if  .Errors.Has "email" }} input-error {{ end }}" id="setup_form--email"
-                name="email" type="email" autocomplete="email" value="{{ if .Form }}{{ .Form.Email }}{{ end }}" placeholder="email@example.com"
+            <input
+                class="input w-full {{ if  .Errors.Has "email" }} input-error {{ end }}"
+                id="setup-form-email"
+                name="email"
+                type="email"
+                autocomplete="email"
+                value="{{ if .Form }}{{ .Form.Email }}{{ end }}"
+                placeholder="email@example.com"
                 required />
             {{ if  .Errors.Has "email" }}
                 <div class="label text-red-500">{{  .Errors.Get "email" }}</div>
@@ -61,8 +74,14 @@
 
         <fieldset class="fieldset">
             <legend class="fieldset-legend">Password</legend>
-            <input class="input w-full {{ if  .Errors.Has "password" }} input-error {{ end }}" id="setup_form--password"
-                name="password" type="password" required autocomplete="new-password" placeholder="••••••••" />
+            <input
+                class="input w-full {{ if  .Errors.Has "password" }} input-error {{ end }}"
+                id="setup-form-password"
+                name="password"
+                type="password"
+                required
+                autocomplete="new-password"
+                placeholder="••••••••" />
             {{ if  .Errors.Has "password" }}
                 <div class="label text-red-500">{{  .Errors.Get "password" }}</div>
             {{ end }}
@@ -70,14 +89,79 @@
 
         <fieldset class="fieldset">
             <legend class="fieldset-legend">Confirm Password</legend>
-            <input class="input w-full {{ if  .Errors.Has "confirmpassword" }} input-error {{ end }}" id="setup_form--confirmpassword"
-                name="confirmPassword" type="password" autocomplete="new-password" placeholder="••••••••" />
+            <input
+                class="input w-full {{ if  .Errors.Has "confirmpassword" }} input-error {{ end }}"
+                id="setup-form-confirmpassword"
+                name="confirmPassword"
+                type="password"
+                autocomplete="new-password"
+                placeholder="••••••••" />
             {{ if  .Errors.Has "confirmpassword" }}
                 <div class="label text-red-500">{{  .Errors.Get "confirmpassword" }}</div>
             {{ end }}
         </fieldset>
 
-    <button type="submit" class="btn btn-neutral"> Create Account </button>
+    <button
+        type="submit"
+        id="submit-btn"
+        class="btn btn-neutral"
+        disabled>
+        <span class="flex items-center justify-center gap-2">
+            <svg id="submit-indicator" class="htmx-indicator animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span id="submit-text">Create Account</span>
+        </span>
+    </button>
+
+   
 </form>
 
 {{ end}}
+
+{{ define "scripts" }}
+<script>
+    (function() {
+        const form = document.getElementById('setup-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const submitText = document.getElementById('submit-text');
+        const nameInput = document.getElementById('setup-form-name');
+        const emailInput = document.getElementById('setup-form-email');
+        const passwordInput = document.getElementById('setup-form-password');
+        const confirmPasswordInput = document.getElementById('setup-form-confirmpassword');
+
+        function validateForm() {
+            const isValid =
+                nameInput.value.trim() !== '' &&
+                emailInput.value.trim() !== '' &&
+                passwordInput.value.length >= 6 &&
+                confirmPasswordInput.value !== '';
+
+            submitBtn.disabled = !isValid;
+            if (isValid) {
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        nameInput.addEventListener('input', validateForm);
+        emailInput.addEventListener('input', validateForm);
+        passwordInput.addEventListener('input', validateForm);
+        confirmPasswordInput.addEventListener('input', validateForm);
+
+        form.addEventListener('htmx:beforeRequest', function() {
+            submitBtn.disabled = true;
+            submitText.textContent = 'Creating account...';
+        });
+
+        form.addEventListener('htmx:afterRequest', function() {
+            submitText.textContent = 'Create Account';
+            validateForm();
+        });
+
+        validateForm();
+    })();
+</script>
+{{ end }}
