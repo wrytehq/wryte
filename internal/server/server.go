@@ -31,6 +31,10 @@ func New() *http.Server {
 
 	db := database.New(cfg)
 
+	if err := db.RunMigrations(); err != nil {
+		log.Fatalf("Failed to run database migrations: %v", err)
+	}
+
 	h := handler.New(tmpl, db)
 
 	newServer := &Server{

@@ -8,6 +8,9 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/wrytehq/wryte/internal/config"
 )
@@ -15,6 +18,8 @@ import (
 type Service interface {
 	Health() map[string]string
 	Close() error
+	RunMigrations() error
+	GetDB() *sql.DB
 }
 
 type service struct {
@@ -51,6 +56,33 @@ func New(cfg *config.Config) Service {
 func (s *service) Close() error {
 	log.Printf("Closing database connection...")
 	return s.db.Close()
+}
+
+func (s *service) GetDB() *sql.DB {
+	return s.db
+}
+
+func (s *service) RunMigrations() error {
+	driver, err := postgres.WithInstance(s.db, &postgres.Config{})
+	if err != nil {
+		return fmt.Errorf("could not create database driver: %w", err)
+	}
+
+	m, err := migrate.NewWithDatabaseInstance(
+		"file://internal/database/migrations",
+		"postgres",
+		driver,
+	)
+	if err != nil {
+		return fmt.Errorf("could not create migrate instance: %w", err)
+	}
+
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		return fmt.Errorf("could not run migrations: %w", err)
+	}
+
+	log.Println("Database migrations completed successfully")
+	return nil
 }
 
 func (s *service) Health() map[string]string {
