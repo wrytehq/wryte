@@ -1,0 +1,24 @@
+{
+  "name": "wryte",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "watch": "tailwindcss -i ./web/styles/tailwind.css -o ./web/assets/css/output.css --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wrytehq/wryte.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/wrytehq/wryte/issues"
+  },
+  "homepage": "https://github.com/wrytehq/wryte#readme",
+  "description": "",
+  "dependencies": {
+    "@tailwindcss/cli": "^4.1.15",
+    "tailwindcss": "^4.1.15"
+  }
+}
