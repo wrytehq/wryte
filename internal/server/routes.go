@@ -42,6 +42,16 @@ func (s *Server) Routes(h *handler.Handler) http.Handler {
 			mux.Handle("/setup", h.Guest(setupMux))
 		}
 
+		// Guest routes - register (only for cloud)
+		if !s.config.IsSelfHosted() && s.config.IsCloud() {
+			registerMux := http.NewServeMux()
+
+			registerMux.HandleFunc("GET /", h.RegisterPage())
+			registerMux.HandleFunc("POST /", h.RegisterForm())
+
+			mux.Handle("/register", h.Guest(registerMux))
+		}
+
 		// Authenticated routes
 		{
 			authenticatedMux := http.NewServeMux()

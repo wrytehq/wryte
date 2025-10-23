@@ -1,0 +1,236 @@
+{{ define "title" }}Register{{ end }}
+
+{{ define "content" }}
+
+<div class="flex items-center justify-center min-h-screen p-8">
+    {{ template "register_form" . }}
+</div>
+
+{{ end }}
+
+{{ define "register_form" }}
+
+<form id="register-form" class="w-full max-w-md p-8 flex flex-col gap-3"
+    hx-post="/register"
+    hx-swap="outerHTML"
+    hx-indicator="#submit-indicator"
+>
+    <div class="text-center">
+        <h1 class="flex gap-2 items-center justify-center text-2xl font-bold text-base-content mb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                class="text-neutral">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                <path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0" />
+                <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+            </svg>
+            Create your account
+        </h1>
+        <p class="text-sm text-base-content/70">
+            Get started with Wryte today
+        </p>
+    </div>
+
+   
+    {{ $nameValue := "" }}
+    {{ if .Form }}{{ $nameValue = .Form.Name }}{{ end }}
+    {{ template "input_text" (dict
+        "Label" "Name"
+        "ID" "register-form-name"
+        "Name" "name"
+        "Placeholder" "John Doe"
+        "Required" true
+        "Autofocus" true
+        "Autocomplete" "name"
+        "Value" $nameValue
+        "Errors" .Errors
+        "ErrorKey" "name"
+    ) }}
+
+    {{ $emailValue := "" }}
+    {{ if .Form }}{{ $emailValue = .Form.Email }}{{ end }}
+    {{ template "input_email" (dict
+        "Label" "E-mail"
+        "ID" "register-form-email"
+        "Name" "email"
+        "Placeholder" "email@example.com"
+        "Required" true
+        "Autocomplete" "email"
+        "Value" $emailValue
+        "Errors" .Errors
+        "ErrorKey" "email"
+        "ValidationID" "email-error"
+    ) }}
+
+    {{ template "input_password" (dict
+        "Label" "Password"
+        "ID" "register-form-password"
+        "Name" "password"
+        "Placeholder" "••••••••"
+        "Required" true
+        "Autocomplete" "new-password"
+        "Errors" .Errors
+        "ErrorKey" "password"
+        "ValidationID" "password-error"
+        "ToggleID" "toggle-password"
+        "EyeIconID" "eye-icon"
+        "EyeOffIconID" "eye-off-icon"
+    ) }}
+
+    {{ template "input_password" (dict
+        "Label" "Confirm Password"
+        "ID" "register-form-confirmpassword"
+        "Name" "confirmPassword"
+        "Placeholder" "••••••••"
+        "Required" true
+        "Autocomplete" "new-password"
+        "Errors" .Errors
+        "ErrorKey" "confirmpassword"
+        "ValidationID" "confirm-password-error"
+        "ToggleID" "toggle-confirm-password"
+        "EyeIconID" "eye-icon-confirm"
+        "EyeOffIconID" "eye-off-icon-confirm"
+    ) }}
+
+    {{ template "button_primary" (dict
+        "Type" "submit"
+        "ID" "submit-btn"
+        "Size" "lg"
+        "Class" "mt-2"
+        "Disabled" true
+        "Text" "Create Account"
+        "TextID" "submit-text"
+        "ShowSpinner" true
+        "SpinnerID" "submit-indicator"
+    ) }}
+
+    <div class="text-center mt-4">
+        <p class="text-sm text-base-content/70">
+            Already have an account?
+            <a href="/login" class="link link-primary">Sign in</a>
+        </p>
+    </div>
+
+    <div class="divider">OR</div>
+
+     <!-- OAuth Providers -->
+     <div class="flex flex-col gap-2">
+        <button type="button" class="btn btn-outline gap-2" disabled>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+            </svg>
+            Continue with Google
+        </button>
+
+        <button type="button" class="btn btn-outline gap-2" disabled>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+            Continue with GitHub
+        </button>
+    </div>
+</form>
+
+{{ end }}
+
+{{ define "scripts" }}
+<script>
+    function initializeRegisterForm() {
+        const form = document.getElementById('register-form');
+        if (!form) return;
+
+        const submitBtn = document.getElementById('submit-btn');
+        const submitText = document.getElementById('submit-text');
+        const nameInput = document.getElementById('register-form-name');
+        const emailInput = document.getElementById('register-form-email');
+        const passwordInput = document.getElementById('register-form-password');
+        const confirmPasswordInput = document.getElementById('register-form-confirmpassword');
+
+        const emailError = document.getElementById('email-error');
+        const passwordError = document.getElementById('password-error');
+        const confirmPasswordError = document.getElementById('confirm-password-error');
+
+        // Backend error elements
+        const nameBackendError = document.getElementById('register-form-name-backend-error');
+        const emailBackendError = document.getElementById('register-form-email-backend-error');
+        const passwordBackendError = document.getElementById('register-form-password-backend-error');
+        const confirmPasswordBackendError = document.getElementById('register-form-confirmpassword-backend-error');
+
+        const FV = window.FormValidation;
+
+        function validateForm() {
+            const nameValid = nameInput.value.trim() !== '';
+            const emailValid = FV.validateEmail(emailInput, emailError);
+            const passwordValid = FV.validatePassword(passwordInput, passwordError, 6);
+            const passwordsMatch = FV.validateConfirmPassword(passwordInput, confirmPasswordInput, confirmPasswordError);
+
+            FV.updateSubmitButton(submitBtn, nameValid && emailValid && passwordValid && passwordsMatch);
+        }
+
+        // Input listeners
+        nameInput.addEventListener('input', function() {
+            FV.clearBackendError(nameInput, nameBackendError);
+            validateForm();
+        });
+
+        emailInput.addEventListener('input', function() {
+            FV.clearBackendError(emailInput, emailBackendError);
+            validateForm();
+        });
+
+        passwordInput.addEventListener('input', function() {
+            FV.clearBackendError(passwordInput, passwordBackendError);
+            validateForm();
+            if (confirmPasswordInput.value !== '') {
+                FV.validateConfirmPassword(passwordInput, confirmPasswordInput, confirmPasswordError);
+            }
+        });
+
+        confirmPasswordInput.addEventListener('input', function() {
+            FV.clearBackendError(confirmPasswordInput, confirmPasswordBackendError);
+            validateForm();
+        });
+
+        // HTMX events
+        form.addEventListener('htmx:beforeRequest', function() {
+            submitBtn.disabled = true;
+            submitText.textContent = 'Creating account...';
+        });
+
+        form.addEventListener('htmx:afterRequest', function() {
+            submitText.textContent = 'Create Account';
+            validateForm();
+        });
+
+        // Password toggles
+        FV.setupPasswordToggle(
+            document.getElementById('toggle-password'),
+            passwordInput,
+            document.getElementById('eye-icon'),
+            document.getElementById('eye-off-icon')
+        );
+
+        FV.setupPasswordToggle(
+            document.getElementById('toggle-confirm-password'),
+            confirmPasswordInput,
+            document.getElementById('eye-icon-confirm'),
+            document.getElementById('eye-off-icon-confirm')
+        );
+
+        validateForm();
+    }
+
+    // Initialize on page load
+    initializeRegisterForm();
+
+    // Re-initialize after HTMX swaps the form
+    document.body.addEventListener('htmx:afterSwap', function(event) {
+        if (event.detail.target.id === 'register-form') {
+            initializeRegisterForm();
+        }
+    });
+</script>
+{{ end }}
