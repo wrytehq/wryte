@@ -13,8 +13,8 @@ CREATE TABLE IF NOT EXISTS documents (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP WITH TIME ZONE,
 
-    CONSTRAINT fk_documents_user_id FOREIGN KEY (user_id) REFERENCES users(id)
-    CONSTRAINT fk_documents_parent_id FOREIGN KEY (parent_id) REFERENCES documents(id)
+    CONSTRAINT fk_documents_user_id FOREIGN KEY (user_id) REFERENCES users(id),
+    CONSTRAINT fk_documents_parent_id FOREIGN KEY (parent_id) REFERENCES documents(id),
     CONSTRAINT fk_documents_workspace_id FOREIGN KEY (workspace_id) REFERENCES workspaces(id)
 );
 

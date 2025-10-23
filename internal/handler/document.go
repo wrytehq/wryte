@@ -10,12 +10,17 @@ import (
 )
 
 type Document struct {
-	ID        string
-	Title     string
-	Content   string
-	CreatedAt string
-	UpdatedAt string
-	UserID    string
+	ID          string
+	Title       string
+	ParentID    string
+	IsPublic    bool
+	IsArchived  bool
+	WorkspaceID string
+	Content     string
+	UserID      string
+	CreatedAt   string
+	UpdatedAt   string
+	DeletedAt   string
 }
 
 func (h *Handler) ViewDocument() http.HandlerFunc {
@@ -38,16 +43,20 @@ func (h *Handler) ViewDocument() http.HandlerFunc {
 
 		// Query document from database
 		var doc Document
-		query := `SELECT id, title, content, created_at, updated_at, user_id
-		          FROM documents
-		          WHERE id = $1`
+		query := `SELECT 
+			id, title, parent_id, is_public, is_archived, workspace_id, content, user_id, created_at, updated_at, deleted_at
+		          FROM documents WHERE id = $1`
 		err := h.db.GetDB().QueryRowContext(r.Context(), query, documentID).Scan(
 			&doc.ID,
 			&doc.Title,
+			&doc.ParentID,
+			&doc.IsPublic,
+			&doc.IsArchived,
+			&doc.WorkspaceID,
 			&doc.Content,
+			&doc.UserID,
 			&doc.CreatedAt,
 			&doc.UpdatedAt,
-			&doc.UserID,
 		)
 
 		if err != nil {
