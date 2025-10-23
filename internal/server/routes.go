@@ -19,7 +19,8 @@ func (s *Server) Routes(h *handler.Handler) http.Handler {
 	r.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.FS(assetsFS))))
 
 	r.HandleFunc("/", h.Home())
-	r.HandleFunc("GET /sign-in", h.SignInPage())
+	r.HandleFunc("GET /login", h.LoginPage())
+	r.HandleFunc("POST /login", h.LoginForm())
 
 	if s.config.IsSelfHosted() && !s.config.IsCloud() {
 		r.HandleFunc("GET /setup", h.SetupPage())

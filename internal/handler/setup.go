@@ -4,9 +4,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
-	"time"
 
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/wrytehq/wryte/internal/validator"
 	"golang.org/x/crypto/bcrypt"
@@ -64,20 +62,9 @@ func (h *Handler) SetupForm() http.HandlerFunc {
 			return
 		}
 
-		// Start transaction
-		tx, err := h.db.GetDB().BeginTx(r.Context(), nil)
-		if err != nil {
-			log.Printf("Error starting transaction: %v", err)
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-		defer tx.Rollback()
-
-		// Insert user and get the ID
-		var userID string
 		query := `INSERT INTO users (username, email, password_hash, created_at, updated_at)
-		          VALUES ($1, $2, $3, NOW(), NOW()) RETURNING id`
-		err = tx.QueryRowContext(r.Context(), query, form.Name, form.Email, hash).Scan(&userID)
+		          VALUES ($1, $2, $3, NOW(), NOW())`
+		_, err = h.db.GetDB().ExecContext(r.Context(), query, form.Name, form.Email, hash)
 		if err != nil {
 			// Check for duplicate email or username
 			var pgErr *pgconn.PgError
@@ -109,36 +96,8 @@ func (h *Handler) SetupForm() http.HandlerFunc {
 			return
 		}
 
-		token := uuid.NewString()
-		expiresAt := time.Now().Add(time.Hour * 24 * 7)
-
-		sessionQuery := `INSERT INTO sessions (user_id, token, expires_at, created_at)
-		                 VALUES ($1, $2, $3, NOW())`
-		_, err = tx.ExecContext(r.Context(), sessionQuery, userID, token, expiresAt)
-		if err != nil {
-			log.Printf("Error creating session: %v", err)
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-
-		if err := tx.Commit(); err != nil {
-			log.Printf("Error committing transaction: %v", err)
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-
-		// Set session cookie
-		http.SetCookie(w, &http.Cookie{
-			Name:     "wryte_session",
-			Value:    token,
-			Expires:  expiresAt,
-			HttpOnly: true,
-			Secure:   true,
-			SameSite: http.SameSiteStrictMode,
-			Path:     "/",
-		})
-
-		w.Header().Set("HX-Redirect", "/")
+		// Redirect to login page
+		w.Header().Set("HX-Redirect", "/login")
 		w.WriteHeader(http.StatusOK)
 	}
 }

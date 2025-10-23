@@ -1,0 +1,218 @@
+{{ define "title" }}Login{{ end }}
+
+{{ define "content" }}
+
+<div class="flex items-center justify-center min-h-screen p-8">
+    {{ template "login_form" . }}
+</div>
+
+{{ end }}
+
+{{ define "login_form" }}
+
+<form id="login-form" class="w-full max-w-md p-8 flex flex-col gap-4"
+    hx-post="/login"
+    hx-swap="outerHTML"
+    hx-indicator="#submit-indicator"
+>
+    <div class="text-center">
+        <h1 class="flex gap-2 items-center justify-center text-2xl font-bold text-base-content mb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                class="text-neutral">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                <path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2" />
+                <path d="M9 12h12l-3 -3" />
+                <path d="M18 15l3 -3" />
+            </svg>
+            Sign in to Wryte
+        </h1>
+        <p class="text-sm text-base-content/70">
+            Enter your credentials to access your account
+        </p>
+    </div>
+
+    {{ $emailValue := "" }}
+    {{ if .Form }}{{ $emailValue = .Form.Email }}{{ end }}
+    {{ template "input_email" (dict
+        "Label" "E-mail"
+        "ID" "login-form-email"
+        "Name" "email"
+        "Placeholder" "email@example.com"
+        "Required" true
+        "Autocomplete" "email"
+        "Value" $emailValue
+        "Errors" .Errors
+        "ErrorKey" "email"
+        "ValidationID" "email-error"
+    ) }}
+
+    {{ template "input_password" (dict
+        "Label" "Password"
+        "ID" "login-form-password"
+        "Name" "password"
+        "Placeholder" "••••••••"
+        "Required" true
+        "Autocomplete" "current-password"
+        "Errors" .Errors
+        "ErrorKey" "password"
+        "ValidationID" "password-error"
+        "ToggleID" "toggle-password"
+        "EyeIconID" "eye-icon"
+        "EyeOffIconID" "eye-off-icon"
+    ) }}
+
+    {{ template "button_primary" (dict
+        "Type" "submit"
+        "ID" "submit-btn"
+        "Size" "lg"
+        "Class" "mt-2"
+        "Disabled" true
+        "Text" "Sign In"
+        "TextID" "submit-text"
+        "ShowSpinner" true
+        "SpinnerID" "submit-indicator"
+    ) }}
+
+    <div class="text-center mt-4">
+        <p class="text-sm text-base-content/70">
+            Don't have an account?
+            <a href="/setup" class="link link-primary">Create one</a>
+        </p>
+    </div>
+</form>
+
+{{ end }}
+
+{{ define "scripts" }}
+<script>
+    function initializeLoginForm() {
+        const form = document.getElementById('login-form');
+        if (!form) return;
+
+        const submitBtn = document.getElementById('submit-btn');
+        const submitText = document.getElementById('submit-text');
+        const emailInput = document.getElementById('login-form-email');
+        const passwordInput = document.getElementById('login-form-password');
+
+        const emailError = document.getElementById('email-error');
+        const passwordError = document.getElementById('password-error');
+
+        // Backend error elements
+        const emailBackendError = document.getElementById('login-form-email-backend-error');
+        const passwordBackendError = document.getElementById('login-form-password-backend-error');
+
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        function showError(element, message) {
+            element.textContent = message;
+            element.classList.remove('hidden');
+        }
+
+        function hideError(element) {
+            element.textContent = '';
+            element.classList.add('hidden');
+        }
+
+        function clearBackendError(inputElement, backendErrorElement) {
+            if (backendErrorElement) {
+                backendErrorElement.remove();
+                inputElement.classList.remove('input-error');
+            }
+        }
+
+        function validateEmail() {
+            const email = emailInput.value.trim();
+            if (email === '') {
+                hideError(emailError);
+                emailInput.classList.remove('input-error');
+                return false;
+            }
+            if (!isValidEmail(email)) {
+                showError(emailError, 'Must be a valid email address');
+                emailInput.classList.add('input-error');
+                return false;
+            }
+            hideError(emailError);
+            emailInput.classList.remove('input-error');
+            return true;
+        }
+
+        function validatePassword() {
+            const password = passwordInput.value;
+            if (password === '') {
+                hideError(passwordError);
+                passwordInput.classList.remove('input-error');
+                return false;
+            }
+            hideError(passwordError);
+            passwordInput.classList.remove('input-error');
+            return true;
+        }
+
+        function validateForm() {
+            const emailValid = validateEmail();
+            const passwordValid = validatePassword();
+
+            const isValid = emailValid && passwordValid;
+
+            submitBtn.disabled = !isValid;
+            if (isValid) {
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        emailInput.addEventListener('input', function() {
+            clearBackendError(emailInput, emailBackendError);
+            validateForm();
+        });
+
+        passwordInput.addEventListener('input', function() {
+            clearBackendError(passwordInput, passwordBackendError);
+            validateForm();
+        });
+
+        form.addEventListener('htmx:beforeRequest', function() {
+            submitBtn.disabled = true;
+            submitText.textContent = 'Signing in...';
+        });
+
+        form.addEventListener('htmx:afterRequest', function() {
+            submitText.textContent = 'Sign In';
+            validateForm();
+        });
+
+        validateForm();
+
+        // Toggle password visibility
+        const togglePasswordBtn = document.getElementById('toggle-password');
+        const eyeIcon = document.getElementById('eye-icon');
+        const eyeOffIcon = document.getElementById('eye-off-icon');
+
+        if (togglePasswordBtn) {
+            togglePasswordBtn.addEventListener('click', function() {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+
+                eyeIcon.classList.toggle('hidden');
+                eyeOffIcon.classList.toggle('hidden');
+            });
+        }
+    }
+
+    // Initialize on page load
+    initializeLoginForm();
+
+    // Re-initialize after HTMX swaps the form
+    document.body.addEventListener('htmx:afterSwap', function(event) {
+        if (event.detail.target.id === 'login-form') {
+            initializeLoginForm();
+        }
+    });
+</script>
+{{ end }}
