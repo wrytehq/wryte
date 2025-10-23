@@ -18,7 +18,8 @@
     <div class="text-center">
         <h1 class="flex gap-2 items-center justify-center text-2xl font-bold text-base-content mb-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                class="text-neutral">
                 <path stroke="none" d="M0 0h24v24H0z" fill="none" />
                 <path
                     d="M12.003 21c-.732 .001 -1.465 -.438 -1.678 -1.317a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c.886 .215 1.325 .957 1.318 1.694" />
@@ -38,143 +39,77 @@
         </p>
     </div>
 
-    <!-- Name Input -->
-    <div class="form-control">
-        <label class="label">
-            <span class="label-text font-medium text-base">Name</span>
-        </label>
-        <input
-            class="input input-bordered w-full focus:outline-none  transition-colors {{ if .Errors.Has "name" }} input-error {{ end }}"
-            id="setup-form-name"
-            name="name"
-            type="text"
-            required
-            autofocus
-            autocomplete="name"
-            value="{{ if .Form }}{{ .Form.Name }}{{ end }}"
-            placeholder="John Doe" />
-        {{ if .Errors.Has "name" }}
-            <label class="label">
-                <span class="label-text-alt text-error">{{ .Errors.Get "name" }}</span>
-            </label>
-        {{ end }}
-    </div>
+    {{ $nameValue := "" }}
+    {{ if .Form }}{{ $nameValue = .Form.Name }}{{ end }}
+    {{ template "input_text" (dict
+        "Label" "Name"
+        "ID" "setup-form-name"
+        "Name" "name"
+        "Placeholder" "John Doe"
+        "Required" true
+        "Autofocus" true
+        "Autocomplete" "name"
+        "Value" $nameValue
+        "Errors" .Errors
+        "ErrorKey" "name"
+    ) }}
 
-    <!-- Email Input -->
-    <div class="form-control">
-        <label class="label">
-            <span class="label-text font-medium text-base">E-mail</span>
-        </label>
-        <input
-            class="input input-bordered w-full focus:outline-none  transition-colors {{ if .Errors.Has "email" }} input-error {{ end }}"
-            id="setup-form-email"
-            name="email"
-            type="email"
-            required
-            autocomplete="email"
-            value="{{ if .Form }}{{ .Form.Email }}{{ end }}"
-            placeholder="email@example.com" />
-        {{ if .Errors.Has "email" }}
-            <label class="label">
-                <span class="label-text-alt text-error">{{ .Errors.Get "email" }}</span>
-            </label>
-        {{ end }}
-        <label class="label">
-            <span id="email-error" class="label-text-alt text-error hidden"></span>
-        </label>
-    </div>
+    {{ $emailValue := "" }}
+    {{ if .Form }}{{ $emailValue = .Form.Email }}{{ end }}
+    {{ template "input_email" (dict
+        "Label" "E-mail"
+        "ID" "setup-form-email"
+        "Name" "email"
+        "Placeholder" "email@example.com"
+        "Required" true
+        "Autocomplete" "email"
+        "Value" $emailValue
+        "Errors" .Errors
+        "ErrorKey" "email"
+        "ValidationID" "email-error"
+    ) }}
 
-    <!-- Password Input -->
-    <div class="form-control">
-        <label class="label">
-            <span class="label-text font-medium text-base">Password</span>
-        </label>
-        <div class="relative">
-            <input
-                class="input input-bordered w-full pr-12 focus:outline-none  transition-colors {{ if .Errors.Has "password" }} input-error {{ end }}"
-                id="setup-form-password"
-                name="password"
-                type="password"
-                required
-                autocomplete="new-password"
-                placeholder="••••••••" />
-            <button
-                type="button"
-                id="toggle-password"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/40 hover:text-base-content/70 focus:outline-none transition-colors"
-                aria-label="Toggle password visibility">
-                <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                    <circle cx="12" cy="12" r="3"></circle>
-                </svg>
-                <svg id="eye-off-icon" class="hidden" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                    <line x1="1" y1="1" x2="23" y2="23"></line>
-                </svg>
-            </button>
-        </div>
-        {{ if .Errors.Has "password" }}
-            <label class="label">
-                <span class="label-text-alt text-error">{{ .Errors.Get "password" }}</span>
-            </label>
-        {{ end }}
-        <label class="label">
-            <span id="password-error" class="label-text-alt text-error hidden"></span>
-        </label>
-    </div>
+    {{ template "input_password" (dict
+        "Label" "Password"
+        "ID" "setup-form-password"
+        "Name" "password"
+        "Placeholder" "••••••••"
+        "Required" true
+        "Autocomplete" "new-password"
+        "Errors" .Errors
+        "ErrorKey" "password"
+        "ValidationID" "password-error"
+        "ToggleID" "toggle-password"
+        "EyeIconID" "eye-icon"
+        "EyeOffIconID" "eye-off-icon"
+    ) }}
 
-    <!-- Confirm Password Input -->
-    <div class="form-control">
-        <label class="label">
-            <span class="label-text font-medium text-base">Confirm Password</span>
-        </label>
-        <div class="relative">
-            <input
-                class="input input-bordered w-full pr-12 focus:outline-none  transition-colors {{ if .Errors.Has "confirmpassword" }} input-error {{ end }}"
-                id="setup-form-confirmpassword"
-                name="confirmPassword"
-                type="password"
-                required
-                autocomplete="new-password"
-                placeholder="••••••••" />
-            <button
-                type="button"
-                id="toggle-confirm-password"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/40 hover:text-base-content/70 focus:outline-none transition-colors"
-                aria-label="Toggle confirm password visibility">
-                <svg id="eye-icon-confirm" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                    <circle cx="12" cy="12" r="3"></circle>
-                </svg>
-                <svg id="eye-off-icon-confirm" class="hidden" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                    <line x1="1" y1="1" x2="23" y2="23"></line>
-                </svg>
-            </button>
-        </div>
-        {{ if .Errors.Has "confirmpassword" }}
-            <label class="label">
-                <span class="label-text-alt text-error">{{ .Errors.Get "confirmpassword" }}</span>
-            </label>
-        {{ end }}
-        <label class="label">
-            <span id="confirm-password-error" class="label-text-alt text-error hidden"></span>
-        </label>
-    </div>
+    {{ template "input_password" (dict
+        "Label" "Confirm Password"
+        "ID" "setup-form-confirmpassword"
+        "Name" "confirmPassword"
+        "Placeholder" "••••••••"
+        "Required" true
+        "Autocomplete" "new-password"
+        "Errors" .Errors
+        "ErrorKey" "confirmpassword"
+        "ValidationID" "confirm-password-error"
+        "ToggleID" "toggle-confirm-password"
+        "EyeIconID" "eye-icon-confirm"
+        "EyeOffIconID" "eye-off-icon-confirm"
+    ) }}
 
-    <button
-        type="submit"
-        id="submit-btn"
-        class="btn btn-neutral btn-lg mt-2"
-        disabled>
-        <span class="flex items-center justify-center gap-2">
-            <svg id="submit-indicator" class="htmx-indicator animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <span id="submit-text" class="font-semibold">Create Account</span>
-        </span>
-    </button>
+    {{ template "button_primary" (dict
+        "Type" "submit"
+        "ID" "submit-btn"
+        "Size" "lg"
+        "Class" "mt-2"
+        "Disabled" true
+        "Text" "Create Account"
+        "TextID" "submit-text"
+        "ShowSpinner" true
+        "SpinnerID" "submit-indicator"
+    ) }}
 </form>
 
 {{ end }}

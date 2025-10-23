@@ -1,4 +1,12 @@
 @import 'tailwindcss';
 @plugin "daisyui" {
-  themes: light --default;
+  themes: all;
+}
+
+@layer base {
+  html {
+    max-width: 100%;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+  }
 }

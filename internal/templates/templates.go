@@ -45,6 +45,21 @@ func templateFuncs() template.FuncMap {
 			}
 			return result[field], nil
 		},
+		// dict creates a map from key-value pairs for passing to templates
+		"dict": func(values ...interface{}) (map[string]interface{}, error) {
+			if len(values)%2 != 0 {
+				return nil, fmt.Errorf("dict expects even number of arguments")
+			}
+			dict := make(map[string]interface{}, len(values)/2)
+			for i := 0; i < len(values); i += 2 {
+				key, ok := values[i].(string)
+				if !ok {
+					return nil, fmt.Errorf("dict keys must be strings")
+				}
+				dict[key] = values[i+1]
+			}
+			return dict, nil
+		},
 	}
 }
 
@@ -61,6 +76,12 @@ func New() (*Manager, error) {
 }
 
 func (m *Manager) loadTemplates() error {
+	// Load component templates first
+	components, err := fs.Glob(web.Files, "templates/components/*.html")
+	if err != nil {
+		return fmt.Errorf("error finding component files: %w", err)
+	}
+
 	pages, err := fs.Glob(web.Files, "templates/**/*.html")
 	if err != nil {
 		return fmt.Errorf("error finding template files: %w", err)
@@ -86,12 +107,22 @@ func (m *Manager) loadTemplates() error {
 			continue // Skip layout.html, it's the base template
 		}
 
+		// Skip component files as they are parsed separately
+		if strings.HasPrefix(page, "templates/components/") {
+			continue
+		}
+
 		name := strings.TrimPrefix(page, "templates/")
 		name = strings.TrimSuffix(name, ".html")
 
 		tmpl := template.New("layout.html").Funcs(templateFuncs())
 
-		tmpl, err := tmpl.ParseFS(web.Files, "templates/layout.html", page)
+		// Parse layout, components, and the page template
+		filesToParse := []string{"templates/layout.html"}
+		filesToParse = append(filesToParse, components...)
+		filesToParse = append(filesToParse, page)
+
+		tmpl, err := tmpl.ParseFS(web.Files, filesToParse...)
 		if err != nil {
 			return fmt.Errorf("error parsing template %s: %w", page, err)
 		}
