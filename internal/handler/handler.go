@@ -30,3 +30,7 @@ func (h *Handler) Authenticated(next http.Handler) http.Handler {
 func (h *Handler) Guest(next http.Handler) http.Handler {
 	return middleware.Guest(h.db)(next)
 }
+
+func (h *Handler) SelfHosted(next http.Handler) http.Handler {
+	return middleware.SelfHosted(h.db)(next)
+}

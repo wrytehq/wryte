@@ -80,3 +80,37 @@ func GetUserID(r *http.Request) (string, bool) {
 	userID, ok := r.Context().Value(UserIDKey).(string)
 	return userID, ok
 }
+
+func SelfHosted(db database.Service) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path == "/status" {
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			var count int
+			err := db.GetDB().QueryRowContext(r.Context(), `SELECT COUNT(*) FROM users`).Scan(&count)
+			if err != nil {
+				http.Redirect(w, r, "/setup", http.StatusSeeOther)
+				return
+			}
+
+			if r.URL.Path == "/setup" {
+				if count > 0 {
+					http.Redirect(w, r, "/login", http.StatusSeeOther)
+					return
+				}
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			if count == 0 {
+				http.Redirect(w, r, "/setup", http.StatusSeeOther)
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
