@@ -116,8 +116,10 @@
 
 {{ define "scripts" }}
 <script>
-    (function() {
+    function initializeSetupForm() {
         const form = document.getElementById('setup-form');
+        if (!form) return;
+
         const submitBtn = document.getElementById('submit-btn');
         const submitText = document.getElementById('submit-text');
         const nameInput = document.getElementById('setup-form-name');
@@ -128,6 +130,12 @@
         const emailError = document.getElementById('email-error');
         const passwordError = document.getElementById('password-error');
         const confirmPasswordError = document.getElementById('confirm-password-error');
+
+        // Backend error elements
+        const nameBackendError = document.getElementById('setup-form-name-backend-error');
+        const emailBackendError = document.getElementById('setup-form-email-backend-error');
+        const passwordBackendError = document.getElementById('setup-form-password-backend-error');
+        const confirmPasswordBackendError = document.getElementById('setup-form-confirmpassword-backend-error');
 
         function isValidEmail(email) {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -142,6 +150,13 @@
         function hideError(element) {
             element.textContent = '';
             element.classList.add('hidden');
+        }
+
+        function clearBackendError(inputElement, backendErrorElement) {
+            if (backendErrorElement) {
+                backendErrorElement.remove();
+                inputElement.classList.remove('input-error');
+            }
         }
 
         function validateEmail() {
@@ -213,15 +228,28 @@
             }
         }
 
-        nameInput.addEventListener('input', validateForm);
-        emailInput.addEventListener('input', validateForm);
+        nameInput.addEventListener('input', function() {
+            clearBackendError(nameInput, nameBackendError);
+            validateForm();
+        });
+
+        emailInput.addEventListener('input', function() {
+            clearBackendError(emailInput, emailBackendError);
+            validateForm();
+        });
+
         passwordInput.addEventListener('input', function() {
+            clearBackendError(passwordInput, passwordBackendError);
             validateForm();
             if (confirmPasswordInput.value !== '') {
                 validateConfirmPassword();
             }
         });
-        confirmPasswordInput.addEventListener('input', validateForm);
+
+        confirmPasswordInput.addEventListener('input', function() {
+            clearBackendError(confirmPasswordInput, confirmPasswordBackendError);
+            validateForm();
+        });
 
         form.addEventListener('htmx:beforeRequest', function() {
             submitBtn.disabled = true;
@@ -240,26 +268,38 @@
         const eyeIcon = document.getElementById('eye-icon');
         const eyeOffIcon = document.getElementById('eye-off-icon');
 
-        togglePasswordBtn.addEventListener('click', function() {
-            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordInput.setAttribute('type', type);
+        if (togglePasswordBtn) {
+            togglePasswordBtn.addEventListener('click', function() {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
 
-            eyeIcon.classList.toggle('hidden');
-            eyeOffIcon.classList.toggle('hidden');
-        });
+                eyeIcon.classList.toggle('hidden');
+                eyeOffIcon.classList.toggle('hidden');
+            });
+        }
 
         // Toggle confirm password visibility
         const toggleConfirmPasswordBtn = document.getElementById('toggle-confirm-password');
         const eyeIconConfirm = document.getElementById('eye-icon-confirm');
         const eyeOffIconConfirm = document.getElementById('eye-off-icon-confirm');
 
-        toggleConfirmPasswordBtn.addEventListener('click', function() {
-            const type = confirmPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            confirmPasswordInput.setAttribute('type', type);
+        if (toggleConfirmPasswordBtn) {
+            toggleConfirmPasswordBtn.addEventListener('click', function() {
+                const type = confirmPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                confirmPasswordInput.setAttribute('type', type);
 
-            eyeIconConfirm.classList.toggle('hidden');
-            eyeOffIconConfirm.classList.toggle('hidden');
-        });
-    })();
+                eyeIconConfirm.classList.toggle('hidden');
+                eyeOffIconConfirm.classList.toggle('hidden');
+            });
+        }
+    }
+
+    initializeSetupForm();
+
+    document.body.addEventListener('htmx:afterSwap', function(event) {
+        if (event.detail.target.id === 'setup-form') {
+            initializeSetupForm();
+        }
+    });
 </script>
 {{ end }}
