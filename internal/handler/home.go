@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 )
@@ -9,37 +8,12 @@ import (
 func (h *Handler) Home() http.HandlerFunc {
 	tmpl := h.templates.MustRender("home")
 
-	type data struct {
-		Error      error
-		HealthJSON []byte
-		HealthData map[string]string
-		DatabaseOK bool
-	}
-
 	return func(w http.ResponseWriter, r *http.Request) {
-		healthData := h.db.Health()
-		health, err := json.Marshal(healthData)
-
-		if err != nil {
-			log.Printf("Error marshaling health data: %v", err)
-			tmpl.ExecuteTemplate(w, "layout.html", data{
-				Error:      err,
-				HealthJSON: nil,
-				HealthData: nil,
-				DatabaseOK: false,
-			})
-			return
+		data := map[string]any{
+			// Add home page data here
 		}
 
-		// Check if database is healthy
-		dbOK := healthData["status"] == "up"
-
-		err = tmpl.ExecuteTemplate(w, "layout.html", data{
-			Error:      nil,
-			HealthJSON: health,
-			HealthData: healthData,
-			DatabaseOK: dbOK,
-		})
+		err := tmpl.ExecuteTemplate(w, "layout.html", data)
 		if err != nil {
 			log.Printf("Error executing template: %v", err)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)

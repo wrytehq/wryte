@@ -22,6 +22,11 @@ func (s *Server) Routes(h *handler.Handler) http.Handler {
 	{
 		mux := http.NewServeMux()
 
+		// Public routes - status page (only for self-hosted)
+		if s.config.IsSelfHosted() && !s.config.IsCloud() {
+			mux.HandleFunc("GET /status", h.StatusPage())
+		}
+
 		// Guest routes - login
 		{
 			loginMux := http.NewServeMux()
@@ -34,30 +39,29 @@ func (s *Server) Routes(h *handler.Handler) http.Handler {
 
 		// Guest routes - setup (only for self-hosted)
 		if s.config.IsSelfHosted() && !s.config.IsCloud() {
-			setupMux := http.NewServeMux()
+			guestMux := http.NewServeMux()
+			guestMux.HandleFunc("GET /", h.SetupPage())
+			guestMux.HandleFunc("POST /", h.SetupForm())
 
-			setupMux.HandleFunc("GET /", h.SetupPage())
-			setupMux.HandleFunc("POST /", h.SetupForm())
-
-			mux.Handle("/setup", h.Guest(setupMux))
+			mux.Handle("/setup", h.Guest(guestMux))
 		}
 
 		// Guest routes - register (only for cloud)
 		if !s.config.IsSelfHosted() && s.config.IsCloud() {
-			registerMux := http.NewServeMux()
+			cloudMux := http.NewServeMux()
 
-			registerMux.HandleFunc("GET /", h.RegisterPage())
-			registerMux.HandleFunc("POST /", h.RegisterForm())
+			cloudMux.HandleFunc("GET /", h.RegisterPage())
+			cloudMux.HandleFunc("POST /", h.RegisterForm())
 
-			mux.Handle("/register", h.Guest(registerMux))
+			mux.Handle("/register", h.Guest(cloudMux))
 		}
 
 		// Authenticated routes
 		{
 			authenticatedMux := http.NewServeMux()
-
 			authenticatedMux.HandleFunc("GET /{$}", h.Home())
 			authenticatedMux.HandleFunc("GET /logout", h.Logout())
+			authenticatedMux.HandleFunc("GET /documents/{documentId}", h.ViewDocument())
 
 			mux.Handle("/", h.Authenticated(authenticatedMux))
 		}
