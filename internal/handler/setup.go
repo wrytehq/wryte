@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/wrytehq/wryte/internal/flash"
 	"github.com/wrytehq/wryte/internal/validator"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -95,6 +96,8 @@ func (h *Handler) SetupForm() http.HandlerFunc {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
+
+		flash.SetSuccess(w, "Setup completed, please log in with your credentials.")
 
 		// Redirect to login page
 		w.Header().Set("HX-Redirect", "/login")

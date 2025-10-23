@@ -5,6 +5,7 @@ import (
 
 	"github.com/wrytehq/wryte/internal/config"
 	"github.com/wrytehq/wryte/internal/database"
+	"github.com/wrytehq/wryte/internal/flash"
 	"github.com/wrytehq/wryte/internal/middleware"
 	"github.com/wrytehq/wryte/internal/templates"
 )
@@ -33,4 +34,9 @@ func (h *Handler) Guest(next http.Handler) http.Handler {
 
 func (h *Handler) SelfHosted(next http.Handler) http.Handler {
 	return middleware.SelfHosted(h.db)(next)
+}
+
+func (h *Handler) GetFlashMessage(w http.ResponseWriter, r *http.Request) *flash.Message {
+	msg, _ := flash.Get(w, r)
+	return msg
 }

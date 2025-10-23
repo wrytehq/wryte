@@ -20,6 +20,7 @@ func (h *Handler) LoginPage() http.HandlerFunc {
 			"Form":         &validator.LoginForm{},
 			"Errors":       &validator.ValidationErrors{},
 			"IsSelfHosted": h.config.IsSelfHosted(),
+			"Flash":        h.GetFlashMessage(w, r),
 		}
 		err := tmpl.ExecuteTemplate(w, "layout.html", data)
 		if err != nil {
