@@ -17,8 +17,9 @@ func (h *Handler) LoginPage() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		data := map[string]any{
-			"Form":   &validator.LoginForm{},
-			"Errors": &validator.ValidationErrors{},
+			"Form":         &validator.LoginForm{},
+			"Errors":       &validator.ValidationErrors{},
+			"IsSelfHosted": h.config.IsSelfHosted(),
 		}
 		err := tmpl.ExecuteTemplate(w, "layout.html", data)
 		if err != nil {
@@ -47,8 +48,9 @@ func (h *Handler) LoginForm() http.HandlerFunc {
 		// If there are validation errors, render the form with errors
 		if validationErrs.HasErrors() {
 			data := map[string]any{
-				"Errors": validationErrs,
-				"Form":   &form,
+				"Errors":       validationErrs,
+				"Form":         &form,
+				"IsSelfHosted": h.config.IsSelfHosted(),
 			}
 			if err := tmpl.ExecuteTemplate(w, "login_form", data); err != nil {
 				log.Printf("Error rendering template: %v", err)
@@ -57,16 +59,19 @@ func (h *Handler) LoginForm() http.HandlerFunc {
 			return
 		}
 
+		// Query user by email
 		var userID, passwordHash string
 		query := `SELECT id, password_hash FROM users WHERE email = $1`
 		err = h.db.GetDB().QueryRowContext(r.Context(), query, form.Email).Scan(&userID, &passwordHash)
 
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
+				// User not found - return generic error for security
 				validationErrs.AddError("email", "Invalid credentials")
 				data := map[string]any{
-					"Errors": validationErrs,
-					"Form":   &form,
+					"Errors":       validationErrs,
+					"Form":         &form,
+					"IsSelfHosted": h.config.IsSelfHosted(),
 				}
 				tmpl.ExecuteTemplate(w, "login_form", data)
 				return
@@ -76,17 +81,21 @@ func (h *Handler) LoginForm() http.HandlerFunc {
 			return
 		}
 
+		// Verify password
 		err = bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(form.Password))
 		if err != nil {
+			// Password doesn't match - return generic error for security
 			validationErrs.AddError("email", "Invalid credentials")
 			data := map[string]any{
-				"Errors": validationErrs,
-				"Form":   &form,
+				"Errors":       validationErrs,
+				"Form":         &form,
+				"IsSelfHosted": h.config.IsSelfHosted(),
 			}
 			tmpl.ExecuteTemplate(w, "login_form", data)
 			return
 		}
 
+		// Start transaction for session creation
 		tx, err := h.db.GetDB().BeginTx(r.Context(), nil)
 		if err != nil {
 			log.Printf("Error starting transaction: %v", err)
@@ -95,6 +104,7 @@ func (h *Handler) LoginForm() http.HandlerFunc {
 		}
 		defer tx.Rollback()
 
+		// Create session
 		token := uuid.NewString()
 		expiresAt := time.Now().Add(time.Hour * 24 * 7) // 7 days
 
@@ -107,12 +117,14 @@ func (h *Handler) LoginForm() http.HandlerFunc {
 			return
 		}
 
+		// Commit transaction
 		if err := tx.Commit(); err != nil {
 			log.Printf("Error committing transaction: %v", err)
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
 
+		// Set session cookie
 		http.SetCookie(w, &http.Cookie{
 			Name:     "wryte_session",
 			Value:    token,
@@ -123,6 +135,7 @@ func (h *Handler) LoginForm() http.HandlerFunc {
 			Path:     "/",
 		})
 
+		// Redirect to home
 		w.Header().Set("HX-Redirect", "/")
 		w.WriteHeader(http.StatusOK)
 	}

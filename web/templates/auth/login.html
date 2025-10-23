@@ -74,12 +74,14 @@
         "SpinnerID" "submit-indicator"
     ) }}
 
+    {{ if not .IsSelfHosted }}
     <div class="text-center mt-4">
         <p class="text-sm text-base-content/70">
             Don't have an account?
-            <a href="/setup" class="link link-primary">Create one</a>
+            <a href="/register" class="link link-primary">Create one</a>
         </p>
     </div>
+    {{ end }}
 </form>
 
 {{ end }}
@@ -102,78 +104,22 @@
         const emailBackendError = document.getElementById('login-form-email-backend-error');
         const passwordBackendError = document.getElementById('login-form-password-backend-error');
 
-        function isValidEmail(email) {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return emailRegex.test(email);
-        }
-
-        function showError(element, message) {
-            element.textContent = message;
-            element.classList.remove('hidden');
-        }
-
-        function hideError(element) {
-            element.textContent = '';
-            element.classList.add('hidden');
-        }
-
-        function clearBackendError(inputElement, backendErrorElement) {
-            if (backendErrorElement) {
-                backendErrorElement.remove();
-                inputElement.classList.remove('input-error');
-            }
-        }
-
-        function validateEmail() {
-            const email = emailInput.value.trim();
-            if (email === '') {
-                hideError(emailError);
-                emailInput.classList.remove('input-error');
-                return false;
-            }
-            if (!isValidEmail(email)) {
-                showError(emailError, 'Must be a valid email address');
-                emailInput.classList.add('input-error');
-                return false;
-            }
-            hideError(emailError);
-            emailInput.classList.remove('input-error');
-            return true;
-        }
-
-        function validatePassword() {
-            const password = passwordInput.value;
-            if (password === '') {
-                hideError(passwordError);
-                passwordInput.classList.remove('input-error');
-                return false;
-            }
-            hideError(passwordError);
-            passwordInput.classList.remove('input-error');
-            return true;
-        }
+        const FV = window.FormValidation;
 
         function validateForm() {
-            const emailValid = validateEmail();
-            const passwordValid = validatePassword();
+            const emailValid = FV.validateEmail(emailInput, emailError);
+            const passwordValid = FV.validatePassword(passwordInput, passwordError, 6);
 
-            const isValid = emailValid && passwordValid;
-
-            submitBtn.disabled = !isValid;
-            if (isValid) {
-                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-            } else {
-                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
-            }
+            FV.updateSubmitButton(submitBtn, emailValid && passwordValid);
         }
 
         emailInput.addEventListener('input', function() {
-            clearBackendError(emailInput, emailBackendError);
+            FV.clearBackendError(emailInput, emailBackendError);
             validateForm();
         });
 
         passwordInput.addEventListener('input', function() {
-            clearBackendError(passwordInput, passwordBackendError);
+            FV.clearBackendError(passwordInput, passwordBackendError);
             validateForm();
         });
 
@@ -187,22 +133,14 @@
             validateForm();
         });
 
+        FV.setupPasswordToggle(
+            document.getElementById('toggle-password'),
+            passwordInput,
+            document.getElementById('eye-icon'),
+            document.getElementById('eye-off-icon')
+        );
+
         validateForm();
-
-        // Toggle password visibility
-        const togglePasswordBtn = document.getElementById('toggle-password');
-        const eyeIcon = document.getElementById('eye-icon');
-        const eyeOffIcon = document.getElementById('eye-off-icon');
-
-        if (togglePasswordBtn) {
-            togglePasswordBtn.addEventListener('click', function() {
-                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-                passwordInput.setAttribute('type', type);
-
-                eyeIcon.classList.toggle('hidden');
-                eyeOffIcon.classList.toggle('hidden');
-            });
-        }
     }
 
     // Initialize on page load
