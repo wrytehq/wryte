@@ -12,19 +12,47 @@ import (
 func (s *Server) Routes(h *handler.Handler) http.Handler {
 	r := http.NewServeMux()
 
+	// Public assets - no auth required
 	assetsFS, err := fs.Sub(web.Files, "assets")
 	if err != nil {
 		panic(err)
 	}
 	r.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.FS(assetsFS))))
 
-	r.HandleFunc("/", h.Home())
-	r.HandleFunc("GET /login", h.LoginPage())
-	r.HandleFunc("POST /login", h.LoginForm())
+	{
+		mux := http.NewServeMux()
 
-	if s.config.IsSelfHosted() && !s.config.IsCloud() {
-		r.HandleFunc("GET /setup", h.SetupPage())
-		r.HandleFunc("POST /setup", h.SetupForm())
+		// Guest routes - login
+		{
+			loginMux := http.NewServeMux()
+
+			loginMux.HandleFunc("GET /", h.LoginPage())
+			loginMux.HandleFunc("POST /", h.LoginForm())
+
+			mux.Handle("/login", h.Guest(loginMux))
+		}
+
+		// Guest routes - setup (only for self-hosted)
+		if s.config.IsSelfHosted() && !s.config.IsCloud() {
+			setupMux := http.NewServeMux()
+
+			setupMux.HandleFunc("GET /", h.SetupPage())
+			setupMux.HandleFunc("POST /", h.SetupForm())
+
+			mux.Handle("/setup", h.Guest(setupMux))
+		}
+
+		// Authenticated routes
+		{
+			authenticatedMux := http.NewServeMux()
+
+			authenticatedMux.HandleFunc("GET /{$}", h.Home())
+			authenticatedMux.HandleFunc("GET /logout", h.Logout())
+
+			mux.Handle("/", h.Authenticated(authenticatedMux))
+		}
+
+		r.Handle("/", mux)
 	}
 
 	return middleware.Chain(
